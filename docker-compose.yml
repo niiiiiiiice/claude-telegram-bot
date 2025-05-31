@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  telegram-bot:
+    build: .
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      - ALLOWED_CHAT_ID=${ALLOWED_CHAT_ID}
+      - LOG_LEVEL=info
+    restart: unless-stopped
