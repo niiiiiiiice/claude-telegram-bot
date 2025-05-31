@@ -167,6 +167,7 @@ func (b *Bot) handleUpdate(ctx context.Context, update tgbotapi.Update) {
 	if response != "" {
 		msg := tgbotapi.NewMessage(chatID, response)
 		msg.ReplyToMessageID = message.MessageID
+		msg.DisableNotification = true
 
 		if _, err := b.api.Send(msg); err != nil {
 			b.logger.Error("Failed to send message", zap.Error(err))
