@@ -1,10 +1,31 @@
-version: '3.8'
+
 services:
   telegram-bot:
     build: .
+    container_name: telegram-bot
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - CLAUDE_API_KEY=${CLAUDE_API_KEY}
-      - ALLOWED_CHAT_ID=${ALLOWED_CHAT_ID}
+      - ALLOWED_CHAT_IDS=${ALLOWED_CHAT_IDS}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_USERNAME=${REDIS_USERNAME}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_DB=${REDIS_DB}
       - LOG_LEVEL=info
     restart: unless-stopped
+    networks:
+      - telegram-bot-network
+
+
+  redis:
+    image: redis
+    container_name: redis
+    restart: unless-stopped
+    networks:
+      - telegram-bot-network
+
+networks:
+  telegram-bot-network:
+    name: telegram-bot-network
+    driver: bridge

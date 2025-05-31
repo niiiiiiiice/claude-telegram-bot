@@ -54,8 +54,8 @@ func (h *CommandHandler) getHelpMessage() string {
 
 /start - Перезапустить бота и показать это меню
 /help - Показать справку по командам
-/startChat - Начать сессию общения (бот запомнит контекст)
-/endChat - Завершить сессию и очистить контекст
+/begin_chat - Начать сессию общения (бот запомнит контекст)
+/end_chat - Завершить сессию и очистить контекст
 /whoami - Показать информацию о пользователе и группе
 
 💬 **Как использовать:**
@@ -70,10 +70,10 @@ func (h *CommandHandler) getHelpMessage() string {
 • Поддерживаю контекст во время активной сессии
 • Работаю только в этой семейной группе
 
-Начни с команды /startChat чтобы я запомнил наш разговор! 🚀`
+Начни с команды /begin_chat чтобы я запомнил наш разговор! 🚀`
 }
 
-func (h *CommandHandler) HandleStartChat(ctx context.Context, cmd commands.StartChatCommand) (string, error) {
+func (h *CommandHandler) HandleBeginChat(ctx context.Context, cmd commands.StartBeginCommand) (string, error) {
 	h.logger.Info("Handling start chat command", zap.Int64("chatID", cmd.ChatID), zap.Int64("userID", cmd.UserID))
 
 	session, err := h.sessionRepo.GetSession(cmd.ChatID, cmd.UserID)

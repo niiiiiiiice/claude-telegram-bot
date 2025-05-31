@@ -46,7 +46,6 @@ func (r *MemorySessionRepository) GetSession(chatID, userID int64) (*entities.Ch
 func (r *MemorySessionRepository) SaveSession(session *entities.ChatSession) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-
 	key := r.getKey(session.ChatID, session.UserID)
 	r.sessions[key] = session
 	return nil

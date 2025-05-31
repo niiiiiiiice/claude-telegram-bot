@@ -6,8 +6,9 @@ package di
 import (
 	"telegram-chatbot/internal/application/handlers"
 	"telegram-chatbot/internal/config"
+	"telegram-chatbot/internal/domain/repositories"
 	"telegram-chatbot/internal/domain/services"
-	"telegram-chatbot/internal/infrastructure/repositories"
+	infraRepo "telegram-chatbot/internal/infrastructure/repositories"
 	infraServices "telegram-chatbot/internal/infrastructure/services"
 	"telegram-chatbot/internal/infrastructure/telegram"
 
@@ -22,13 +23,17 @@ type Container struct {
 func InitializeContainer(*config.Config) (*Container, func(), error) {
 	wire.Build(
 		NewLogger,
-		repositories.NewMemorySessionRepository,
+		NewRedisSessionRepository,
 		NewClaudeAPIService,
 		handlers.NewCommandHandler,
 		telegram.NewBot,
 		wire.Struct(new(Container), "*"),
 	)
 	return &Container{}, nil, nil
+}
+
+func NewRedisSessionRepository(cfg *config.Config) repositories.SessionRepository {
+	return infraRepo.NewRedisSessionRepository(cfg)
 }
 
 func NewLogger(cfg *config.Config) (*zap.Logger, error) {

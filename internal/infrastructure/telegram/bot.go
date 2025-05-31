@@ -53,11 +53,11 @@ func setBotCommands(bot *tgbotapi.BotAPI) error {
 			Description: "Показать справку по командам",
 		},
 		{
-			Command:     "startChat",
+			Command:     "begin_chat",
 			Description: "Начать сессию общения с контекстом",
 		},
 		{
-			Command:     "endChat",
+			Command:     "end_chat",
 			Description: "Завершить сессию и очистить контекст",
 		},
 		{
@@ -98,7 +98,15 @@ func (b *Bot) handleUpdate(ctx context.Context, update tgbotapi.Update) {
 	message := update.Message
 
 	// Проверяем, что сообщение из разрешенной группы
-	if message.Chat.ID != b.config.AllowedChatID {
+	authorized := false
+	for _, allowedChatID := range b.config.AllowedChatIDs {
+		if message.Chat.ID == allowedChatID {
+			authorized = true
+			break
+		}
+	}
+
+	if !authorized {
 		b.logger.Warn("Message from unauthorized chat", zap.Int64("chatID", message.Chat.ID))
 		return
 	}
@@ -122,12 +130,12 @@ func (b *Bot) handleUpdate(ctx context.Context, update tgbotapi.Update) {
 				ChatID: chatID,
 				UserID: userID,
 			})
-		case "startChat":
-			response, err = b.commandHandler.HandleStartChat(ctx, commands.StartChatCommand{
+		case "begin_chat":
+			response, err = b.commandHandler.HandleBeginChat(ctx, commands.StartBeginCommand{
 				ChatID: chatID,
 				UserID: userID,
 			})
-		case "endChat":
+		case "end_chat":
 			response, err = b.commandHandler.HandleEndChat(ctx, commands.EndChatCommand{
 				ChatID: chatID,
 				UserID: userID,

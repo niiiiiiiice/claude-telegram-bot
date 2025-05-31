@@ -10,8 +10,9 @@ import (
 	"go.uber.org/zap"
 	"telegram-chatbot/internal/application/handlers"
 	"telegram-chatbot/internal/config"
+	"telegram-chatbot/internal/domain/repositories"
 	"telegram-chatbot/internal/domain/services"
-	"telegram-chatbot/internal/infrastructure/repositories"
+	repositories2 "telegram-chatbot/internal/infrastructure/repositories"
 	services2 "telegram-chatbot/internal/infrastructure/services"
 	"telegram-chatbot/internal/infrastructure/telegram"
 )
@@ -19,7 +20,7 @@ import (
 // Injectors from wire.go:
 
 func InitializeContainer(configConfig *config.Config) (*Container, func(), error) {
-	sessionRepository := repositories.NewMemorySessionRepository()
+	sessionRepository := NewRedisSessionRepository(configConfig)
 	claudeService := NewClaudeAPIService(configConfig)
 	logger, err := NewLogger(configConfig)
 	if err != nil {
@@ -41,6 +42,10 @@ func InitializeContainer(configConfig *config.Config) (*Container, func(), error
 
 type Container struct {
 	Bot *telegram.Bot
+}
+
+func NewRedisSessionRepository(cfg *config.Config) repositories.SessionRepository {
+	return repositories2.NewRedisSessionRepository(cfg)
 }
 
 func NewLogger(cfg *config.Config) (*zap.Logger, error) {

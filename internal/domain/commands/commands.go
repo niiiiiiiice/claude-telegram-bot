@@ -10,7 +10,7 @@ type HelpCommand struct {
 	UserID int64
 }
 
-type StartChatCommand struct {
+type StartBeginCommand struct {
 	ChatID int64
 	UserID int64
 }
