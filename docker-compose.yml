@@ -6,6 +6,7 @@ services:
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      - BRAVE_SEARCH_KEY=${BRAVE_SEARCH_KEY}
       - ALLOWED_CHAT_IDS=${ALLOWED_CHAT_IDS}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
@@ -21,6 +22,8 @@ services:
   redis:
     image: redis
     container_name: redis
+    ports:
+      - "6379:6379"
     restart: unless-stopped
     networks:
       - telegram-bot-network
