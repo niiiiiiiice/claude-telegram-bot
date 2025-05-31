@@ -85,11 +85,14 @@ func (b *Bot) Start(ctx context.Context) error {
 			b.logger.Info("Bot stopping...")
 			return nil
 		case update := <-updates:
-			if update.Message == nil {
+			if update.CallbackQuery != nil {
+				go b.handleCallbackQuery(ctx, update.CallbackQuery)
 				continue
 			}
 
-			go b.handleUpdate(ctx, update)
+			if update.Message != nil {
+				go b.handleUpdate(ctx, update)
+			}
 		}
 	}
 }
@@ -97,7 +100,6 @@ func (b *Bot) Start(ctx context.Context) error {
 func (b *Bot) handleUpdate(ctx context.Context, update tgbotapi.Update) {
 	message := update.Message
 
-	// Проверяем, что сообщение из разрешенной группы
 	authorized := false
 	for _, allowedChatID := range b.config.AllowedChatIDs {
 		if message.Chat.ID == allowedChatID {
@@ -152,7 +154,6 @@ func (b *Bot) handleUpdate(ctx context.Context, update tgbotapi.Update) {
 			return // Неизвестная команда - игнорируем
 		}
 	} else {
-		// Обработка обычных сообщений (только если бот упомянут)
 		if b.isFromGroup(message) && !b.isBotMentioned(message) {
 			return
 		}
@@ -176,6 +177,14 @@ func (b *Bot) handleUpdate(ctx context.Context, update tgbotapi.Update) {
 		msg := tgbotapi.NewMessage(chatID, response)
 		msg.ReplyToMessageID = message.MessageID
 		msg.DisableNotification = true
+
+		session, err := b.commandHandler.GetSession(ctx, chatID, userID)
+		if err == nil && session.IsActive {
+			endChatButton := tgbotapi.NewInlineKeyboardButtonData("Завершить сессию", "end_chat")
+			row := tgbotapi.NewInlineKeyboardRow(endChatButton)
+			keyboard := tgbotapi.NewInlineKeyboardMarkup(row)
+			msg.ReplyMarkup = keyboard
+		}
 
 		if _, err := b.api.Send(msg); err != nil {
 			b.logger.Error("Failed to send message", zap.Error(err))
@@ -202,4 +211,36 @@ func (b *Bot) isBotMentioned(message *tgbotapi.Message) bool {
 func (b *Bot) cleanMessage(text string) string {
 	botUsername := "@" + b.api.Self.UserName
 	return strings.TrimSpace(strings.ReplaceAll(text, botUsername, ""))
+}
+
+func (b *Bot) handleCallbackQuery(ctx context.Context, callbackQuery *tgbotapi.CallbackQuery) {
+	b.logger.Info("Handling callback query",
+		zap.String("data", callbackQuery.Data),
+		zap.Int64("chatID", callbackQuery.Message.Chat.ID),
+		zap.Int64("userID", callbackQuery.From.ID))
+
+	callbackCfg := tgbotapi.NewCallback(callbackQuery.ID, "")
+	if _, err := b.api.Request(callbackCfg); err != nil {
+		b.logger.Error("Failed to answer callback query", zap.Error(err))
+	}
+
+	switch callbackQuery.Data {
+	case "end_chat":
+		response, err := b.commandHandler.HandleEndChat(ctx, commands.EndChatCommand{
+			ChatID: callbackQuery.Message.Chat.ID,
+			UserID: callbackQuery.From.ID,
+		})
+
+		if err != nil {
+			b.logger.Error("Failed to end chat", zap.Error(err))
+			response = "😔 Произошла ошибка при завершении сессии."
+		}
+
+		msg := tgbotapi.NewMessage(callbackQuery.Message.Chat.ID, response)
+		msg.DisableNotification = true
+
+		if _, err := b.api.Send(msg); err != nil {
+			b.logger.Error("Failed to send end chat confirmation", zap.Error(err))
+		}
+	}
 }

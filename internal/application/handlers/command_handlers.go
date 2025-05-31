@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"telegram-chatbot/internal/domain/commands"
+	"telegram-chatbot/internal/domain/entities"
 	"telegram-chatbot/internal/domain/repositories"
 	"telegram-chatbot/internal/domain/services"
 
@@ -142,6 +143,11 @@ func (h *CommandHandler) HandleWhoAmI(ctx context.Context, cmd commands.WhoAmICo
 	), nil
 }
 
+// GetSession retrieves a chat session for the given chat and user IDs
+func (h *CommandHandler) GetSession(ctx context.Context, chatID, userID int64) (*entities.ChatSession, error) {
+	return h.sessionRepo.GetSession(chatID, userID)
+}
+
 func (h *CommandHandler) HandleMessage(ctx context.Context, cmd commands.ProcessMessageCommand) (string, error) {
 	h.logger.Info("Handling message", zap.Int64("chatID", cmd.ChatID), zap.Int64("userID", cmd.UserID))
 
@@ -151,13 +157,11 @@ func (h *CommandHandler) HandleMessage(ctx context.Context, cmd commands.Process
 	}
 
 	if !session.IsActive {
-		return "ℹ️ Сессия не активна. Используй /startChat чтобы начать общение.", nil
+		return "ℹ️ Сессия не активна. Используй /begin_chat чтобы начать общение.", nil
 	}
 
-	// Добавляем сообщение пользователя
 	session.AddMessage("user", cmd.Message)
 
-	// Проверяем размер контекста
 	if session.GetContextSize() > MaxContextSize {
 		session.Reset()
 		if err := h.sessionRepo.SaveSession(session); err != nil {
