@@ -154,7 +154,7 @@ func (b *Bot) handleUpdate(ctx context.Context, update tgbotapi.Update) {
 			return // Неизвестная команда - игнорируем
 		}
 	} else {
-		if b.isFromGroup(message) && !b.isBotMentioned(message) {
+		if b.isFromGroup(message) && !b.isBotMentioned(message) && !b.isReplyToBot(message) {
 			return
 		}
 
@@ -206,6 +206,10 @@ func (b *Bot) isFromGroup(message *tgbotapi.Message) bool {
 func (b *Bot) isBotMentioned(message *tgbotapi.Message) bool {
 	botUsername := "@" + b.api.Self.UserName
 	return strings.Contains(message.Text, botUsername)
+}
+
+func (b *Bot) isReplyToBot(message *tgbotapi.Message) bool {
+	return message.ReplyToMessage != nil && message.ReplyToMessage.From != nil && message.ReplyToMessage.From.ID == b.api.Self.ID
 }
 
 func (b *Bot) cleanMessage(text string) string {
