@@ -53,11 +53,11 @@ func setBotCommands(bot *tgbotapi.BotAPI) error {
 			Description: "Показать справку по командам",
 		},
 		{
-			Command:     "startchat",
+			Command:     "startChat",
 			Description: "Начать сессию общения с контекстом",
 		},
 		{
-			Command:     "endchat",
+			Command:     "endChat",
 			Description: "Завершить сессию и очистить контекст",
 		},
 		{
