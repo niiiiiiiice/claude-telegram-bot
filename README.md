@@ -35,6 +35,11 @@
    ```bash
    make run
    ```
+4. Сгенерируй Swagger документацию командой:
+   ```bash
+   swag init -g cmd/main.go
+   ```
+   Обычно этот шаг выполняется через `go generate`.
 
 ## Docker
 
@@ -73,3 +78,7 @@ make docker-run
 ├── Dockerfile
 └── docker-compose.yml
 ```
+
+## Документация API
+
+Swagger UI доступен по адресу `/docs/index.html` после запуска сервиса.

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	docs "telegram-chatbot/docs"
 	"telegram-chatbot/internal/app"
 	"telegram-chatbot/internal/config"
 	"telegram-chatbot/internal/di"
@@ -21,6 +22,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
+
+	docs.SwaggerInfo.BasePath = "/"
 
 	container, cleanup, err := di.InitializeContainer(cfg)
 	if err != nil {
