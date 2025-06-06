@@ -12,6 +12,7 @@ import (
 	"telegram-chatbot/internal/config"
 	"telegram-chatbot/internal/domain/repositories"
 	"telegram-chatbot/internal/domain/services"
+	"telegram-chatbot/internal/infrastructure/healthcheck"
 	repositories2 "telegram-chatbot/internal/infrastructure/repositories"
 	services2 "telegram-chatbot/internal/infrastructure/services"
 	"telegram-chatbot/internal/infrastructure/telegram"
@@ -31,8 +32,10 @@ func InitializeContainer(configConfig *config.Config) (*Container, func(), error
 	if err != nil {
 		return nil, nil, err
 	}
+	service := NewHealthCheckService(configConfig, bot, logger)
 	container := &Container{
-		Bot: bot,
+		Bot:         bot,
+		HealthCheck: service,
 	}
 	return container, func() {
 	}, nil
@@ -41,7 +44,8 @@ func InitializeContainer(configConfig *config.Config) (*Container, func(), error
 // wire.go:
 
 type Container struct {
-	Bot *telegram.Bot
+	Bot         *telegram.Bot
+	HealthCheck *healthcheck.Service
 }
 
 func NewRedisSessionRepository(cfg *config.Config) repositories.SessionRepository {
@@ -71,4 +75,8 @@ func NewLogger(cfg *config.Config) (*zap.Logger, error) {
 
 func NewClaudeAPIService(cfg *config.Config) services.ClaudeService {
 	return services2.NewClaudeAPIService(cfg.ClaudeAPIKey)
+}
+
+func NewHealthCheckService(cfg *config.Config, bot *telegram.Bot, logger *zap.Logger) *healthcheck.Service {
+	return healthcheck.NewHealthCheckService(bot, logger, cfg.HealthCheckPort)
 }

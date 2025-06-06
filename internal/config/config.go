@@ -17,6 +17,7 @@ type Config struct {
 	RedisUsername    string
 	RedisPassword    string
 	RedisDB          int
+	HealthCheckPort  string
 }
 
 func Load() (*Config, error) {
@@ -76,6 +77,11 @@ func Load() (*Config, error) {
 		}
 	}
 
+	healthCheckPort := os.Getenv("HEALTH_CHECK_PORT")
+	if healthCheckPort == "" {
+		healthCheckPort = "8080"
+	}
+
 	return &Config{
 		TelegramBotToken: botToken,
 		ClaudeAPIKey:     claudeAPIKey,
@@ -86,5 +92,6 @@ func Load() (*Config, error) {
 		RedisUsername:    redisUsername,
 		RedisPassword:    redisPassword,
 		RedisDB:          redisDB,
+		HealthCheckPort:  healthCheckPort,
 	}, nil
 }

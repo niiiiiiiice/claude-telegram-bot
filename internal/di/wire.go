@@ -8,6 +8,7 @@ import (
 	"telegram-chatbot/internal/config"
 	"telegram-chatbot/internal/domain/repositories"
 	"telegram-chatbot/internal/domain/services"
+	"telegram-chatbot/internal/infrastructure/healthcheck"
 	infraRepo "telegram-chatbot/internal/infrastructure/repositories"
 	infraServices "telegram-chatbot/internal/infrastructure/services"
 	"telegram-chatbot/internal/infrastructure/telegram"
@@ -17,7 +18,8 @@ import (
 )
 
 type Container struct {
-	Bot *telegram.Bot
+	Bot            *telegram.Bot
+	HealthCheck    *healthcheck.Service
 }
 
 func InitializeContainer(*config.Config) (*Container, func(), error) {
@@ -27,6 +29,7 @@ func InitializeContainer(*config.Config) (*Container, func(), error) {
 		NewClaudeAPIService,
 		handlers.NewCommandHandler,
 		telegram.NewBot,
+		NewHealthCheckService,
 		wire.Struct(new(Container), "*"),
 	)
 	return &Container{}, nil, nil
@@ -55,4 +58,8 @@ func NewLogger(cfg *config.Config) (*zap.Logger, error) {
 
 func NewClaudeAPIService(cfg *config.Config) services.ClaudeService {
 	return infraServices.NewClaudeAPIService(cfg.ClaudeAPIKey)
+}
+
+func NewHealthCheckService(cfg *config.Config, bot *telegram.Bot, logger *zap.Logger) *healthcheck.Service {
+	return healthcheck.NewHealthCheckService(bot, logger, cfg.HealthCheckPort)
 }

@@ -23,4 +23,4 @@ wire:
 
 # Для генерации wire кода
 generate:
-	go generate ./...
+	go generate ./internal/di
