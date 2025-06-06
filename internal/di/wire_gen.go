@@ -12,10 +12,11 @@ import (
 	"telegram-chatbot/internal/config"
 	"telegram-chatbot/internal/domain/repositories"
 	"telegram-chatbot/internal/domain/services"
-	"telegram-chatbot/internal/infrastructure/healthcheck"
+	infraHealth "telegram-chatbot/internal/infrastructure/healthcheck"
 	repositories2 "telegram-chatbot/internal/infrastructure/repositories"
 	services2 "telegram-chatbot/internal/infrastructure/services"
 	"telegram-chatbot/internal/infrastructure/telegram"
+	"telegram-chatbot/internal/presentation/controllers"
 )
 
 // Injectors from wire.go:
@@ -32,7 +33,7 @@ func InitializeContainer(configConfig *config.Config) (*Container, func(), error
 	if err != nil {
 		return nil, nil, err
 	}
-	service := NewHealthCheckService(configConfig, bot, logger)
+	service := NewHealthCheckService(configConfig, logger)
 	container := &Container{
 		Bot:         bot,
 		HealthCheck: service,
@@ -45,7 +46,7 @@ func InitializeContainer(configConfig *config.Config) (*Container, func(), error
 
 type Container struct {
 	Bot         *telegram.Bot
-	HealthCheck *healthcheck.Service
+	HealthCheck *infraHealth.Service
 }
 
 func NewRedisSessionRepository(cfg *config.Config) repositories.SessionRepository {
@@ -77,6 +78,11 @@ func NewClaudeAPIService(cfg *config.Config) services.ClaudeService {
 	return services2.NewClaudeAPIService(cfg.ClaudeAPIKey)
 }
 
-func NewHealthCheckService(cfg *config.Config, bot *telegram.Bot, logger *zap.Logger) *healthcheck.Service {
-	return healthcheck.NewHealthCheckService(bot, logger, cfg.HealthCheckPort)
+func NewHealthCheckService(cfg *config.Config, logger *zap.Logger) *infraHealth.Service {
+	srv := infraHealth.NewHealthCheckService(logger, cfg.HealthCheckPort)
+	healthCtrl := controllers.NewHealthCheckController(srv.ReadyFlag())
+	docsCtrl := controllers.NewDocumentationController()
+	healthCtrl.RegisterRoutes(srv.Router().Group("/health"))
+	docsCtrl.RegisterRoutes(srv.Router().Group("/swagger"))
+	return srv
 }
