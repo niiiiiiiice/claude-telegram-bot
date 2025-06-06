@@ -2,6 +2,7 @@ package healthcheck
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"sync/atomic"
 	"telegram-chatbot/internal/infrastructure/telegram"
@@ -41,6 +42,7 @@ func NewHealthCheckService(bot *telegram.Bot, logger *zap.Logger, port string) *
 	// Register routes
 	router.GET("/health/liveness", service.livenessHandler)
 	router.GET("/health/readiness", service.readinessHandler)
+	router.GET("/docs", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return service
@@ -60,6 +62,7 @@ func (s *Service) Start(ctx context.Context) error {
 
 	// Run server in a goroutine
 	go func() {
+		fmt.Println("Starting server at http://localhost:" + s.port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			s.logger.Error("Failed to start health check server", zap.Error(err))
 		}
