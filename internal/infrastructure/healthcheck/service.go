@@ -39,6 +39,8 @@ func NewHealthCheckService(bot *telegram.Bot, logger *zap.Logger, port string) *
 	// Register routes
 	router.GET("/health/liveness", service.livenessHandler)
 	router.GET("/health/readiness", service.readinessHandler)
+	router.GET("/docs", service.docsHandler)
+	router.GET("/docs/openapi.json", service.openapiHandler)
 
 	return service
 }
@@ -46,10 +48,10 @@ func NewHealthCheckService(bot *telegram.Bot, logger *zap.Logger, port string) *
 // Start starts the health check service
 func (s *Service) Start(ctx context.Context) error {
 	s.logger.Info("Starting health check service", zap.String("port", s.port))
-	
+
 	// Mark as ready after the bot has started
 	s.ready.Store(true)
-	
+
 	server := &http.Server{
 		Addr:    ":" + s.port,
 		Handler: s.router,
@@ -103,4 +105,26 @@ func (s *Service) readinessHandler(c *gin.Context) {
 			"status": "NOT_READY",
 		})
 	}
+}
+
+// docsHandler serves the Swagger UI page for API documentation
+func (s *Service) docsHandler(c *gin.Context) {
+	data, err := docsFS.ReadFile("docs/index.html")
+	if err != nil {
+		s.logger.Error("failed to read docs", zap.Error(err))
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+	c.Data(http.StatusOK, "text/html; charset=utf-8", data)
+}
+
+// openapiHandler returns the OpenAPI specification
+func (s *Service) openapiHandler(c *gin.Context) {
+	data, err := docsFS.ReadFile("docs/openapi.json")
+	if err != nil {
+		s.logger.Error("failed to read openapi spec", zap.Error(err))
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+	c.Data(http.StatusOK, "application/json", data)
 }

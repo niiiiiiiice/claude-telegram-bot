@@ -1,0 +1,62 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Health Check API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health/liveness": {
+      "get": {
+        "summary": "Liveness check",
+        "responses": {
+          "200": {
+            "description": "Service is up",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {"type": "string", "example": "UP"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/readiness": {
+      "get": {
+        "summary": "Readiness check",
+        "responses": {
+          "200": {
+            "description": "Service is ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {"type": "string", "example": "READY"}
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service not ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {"type": "string", "example": "NOT_READY"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

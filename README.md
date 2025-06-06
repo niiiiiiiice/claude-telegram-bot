@@ -73,3 +73,7 @@ make docker-run
 ├── Dockerfile
 └── docker-compose.yml
 ```
+
+## API Documentation
+
+После запуска сервиса документация доступна по адресу `http://localhost:8080/docs`.
