@@ -73,6 +73,7 @@ make docker-run
 │   │   ├── queries/         # Запросы
 │   │   └── repositories/    # Интерфейсы репозиториев
 │   ├── application/         # Обработчики команд
+│   ├── presentation/        # HTTP контроллеры
 │   ├── infrastructure/      # Внешние сервисы
 │   └── di/                  # Dependency injection
 ├── Dockerfile
@@ -81,4 +82,4 @@ make docker-run
 
 ## Документация API
 
-Swagger UI доступен по адресу `/docs/index.html` после запуска сервиса.
+Swagger UI доступен по адресу `/swagger/index.html` (также `/swagger`) после запуска сервиса.
